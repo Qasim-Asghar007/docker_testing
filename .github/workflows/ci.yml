@@ -22,7 +22,7 @@ jobs:
 
       - name: Run tests
         # Double-check if your file is test_calculator.py or calc_testing.py!
-        run: python3 test_calculator.py
+        run: python3 calc_testing.py
 
   # ── JOB 2: Build and Push Docker Image (CD) ────────────────────
   build-and-push:
