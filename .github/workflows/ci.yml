@@ -23,7 +23,7 @@ jobs:
 
       - name: Run Tests
         # NOTE: Ensure this filename matches your script (e.g., calc_testing.py)
-        run: python3 test_calculator.py
+        run: python3 calc_testing.py
 
       - name: Show system info on success
         run: |
