@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,7 +7,9 @@ on:
     branches: [ main ]
 
 jobs:
+  # ── JOB 1: Run Tests (CI) ──────────────────────────────────────
   test:
+    name: Run Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,15 +20,37 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Show Python version
-        run: python3 --version
+      - name: Run tests
+        # Double-check if your file is test_calculator.py or calc_testing.py!
+        run: python3 test_calculator.py
 
-      - name: Run Tests
-        # NOTE: Ensure this filename matches your script (e.g., calc_testing.py)
-        run: python3 calc_testing.py
+  # ── JOB 2: Build and Push Docker Image (CD) ────────────────────
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test # Only runs if the test job PASSES
+    # Only push on main branch push (not on pull requests)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Show system info on success
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker Image
         run: |
-          echo 'Tests completed successfully!'
-          echo 'Runner info:'
-          uname -a
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devops-lab09:latest .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devops-lab09:${{ github.sha }} .
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devops-lab09:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devops-lab09:${{ github.sha }}
+
+      - name: Confirm Push
+        run: echo 'Image pushed to Docker Hub successfully!'
